@@ -4,192 +4,356 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
 <title>Futbol Quiz</title>
+
 <style>
 *{box-sizing:border-box}
 body{
  margin:0;font-family:Arial,sans-serif;min-height:100vh;
  display:flex;justify-content:center;align-items:center;
- background:linear-gradient(135deg,#061b12,#087a4b);color:white
+ background:linear-gradient(135deg,#04150d,#087a4b);
+ color:white;transition:.3s
 }
+body.light{background:linear-gradient(135deg,#e9fff4,#8be0b5);color:#08251a}
 .container{
- width:92%;max-width:650px;background:#0006;padding:28px;
- border-radius:22px;text-align:center;box-shadow:0 10px 40px #0008
+ width:94%;max-width:700px;background:#0007;padding:25px;
+ border-radius:25px;text-align:center;box-shadow:0 15px 50px #0008
 }
-h1{font-size:42px;margin:5px 0 25px}
+h1{font-size:42px;margin:5px 0 20px}
 button{
- width:100%;padding:15px;margin:7px 0;border:0;border-radius:12px;
- font-size:18px;font-weight:bold;cursor:pointer;transition:.2s
+ width:100%;padding:14px;margin:6px 0;border:0;border-radius:13px;
+ font-size:17px;font-weight:bold;cursor:pointer;transition:.2s
 }
-button:hover{transform:scale(1.02)}
+button:hover{transform:scale(1.025)}
 .option{text-align:left;background:white;color:#111}
 .correct{background:#20c878!important;color:white!important}
 .wrong{background:#ed4141!important;color:white!important}
 .hidden{display:none}
-#timer{font-size:22px;font-weight:bold;margin:15px}
-#progress{font-size:17px}
+.stats{
+ display:flex;justify-content:space-between;gap:8px;
+ margin-bottom:12px;font-weight:bold
+}
+.stat{background:#0005;padding:9px;border-radius:10px;flex:1}
+.category{
+ display:grid;grid-template-columns:1fr 1fr;gap:8px
+}
+.category button{margin:0}
+.small{font-size:14px;opacity:.85}
+#question{min-height:65px}
+#timer{font-size:23px;margin:10px}
+#result h1{font-size:38px}
+#message{min-height:25px;font-weight:bold}
+#leaderboard{
+ text-align:left;background:#0004;padding:15px;border-radius:15px;
+ margin-top:15px
+}
 </style>
 </head>
 
 <body>
+
 <div class="container">
 
+<!-- ANA MENÜ -->
 <div id="menu">
 <h1>⚽ Futbol Quiz</h1>
+<p class="small">Futbol bilgini test et!</p>
 
-<h2>Soru Sayısı</h2>
+<h3>📋 Soru Sayısı</h3>
 <button onclick="chooseCount(5)">5 Soru</button>
 <button onclick="chooseCount(10)">10 Soru</button>
 <button onclick="chooseCount(15)">15 Soru</button>
 <button onclick="chooseCount(20)">20 Soru</button>
 
-<div id="difficulty" class="hidden">
-<h2>Zorluk</h2>
-<button onclick="start('Kolay')">🟢 Kolay</button>
-<button onclick="start('Normal')">🟡 Normal</button>
-<button onclick="start('Zor')">🔴 Zor</button>
-</div>
+<div id="settings" class="hidden">
+
+<h3>🎯 Zorluk</h3>
+<button onclick="chooseDifficulty('Kolay')">🟢 Kolay</button>
+<button onclick="chooseDifficulty('Normal')">🟡 Normal</button>
+<button onclick="chooseDifficulty('Zor')">🔴 Zor</button>
+
+<h3>🌍 Kategori</h3>
+<div class="category">
+<button onclick="setCategory('Karışık')">🌍 Karışık</button>
+<button onclick="setCategory('Oyuncular')">👤 Oyuncular</button>
+<button onclick="setCategory('Takımlar')">🏟️ Takımlar</button>
+<button onclick="setCategory('Kupalar')">🏆 Kupalar</button>
 </div>
 
+<h3>⏱️ Süre</h3>
+<div class="category">
+<button onclick="setTime(5)">5 sn</button>
+<button onclick="setTime(10)">10 sn</button>
+<button onclick="setTime(15)">15 sn</button>
+<button onclick="setTime(30)">30 sn</button>
+</div>
+
+<br>
+<button onclick="startQuiz()">🚀 QUIZ'E BAŞLA</button>
+
+</div>
+
+<hr>
+
+<button onclick="showAchievements()">🥇 Başarımlar</button>
+<button onclick="showLeaderboard()">🏆 Liderlik Tablosu</button>
+<button onclick="toggleTheme()">🌙 Tema Değiştir</button>
+</div>
+
+
+<!-- QUIZ -->
 <div id="quiz" class="hidden">
+
+<div class="stats">
+<div class="stat">❤️ <span id="lives">3</span></div>
+<div class="stat">💰 <span id="coins">0</span></div>
+<div class="stat">🔥 <span id="streak">0</span></div>
+</div>
+
 <div id="progress"></div>
 <div id="timer">⏱️ 15</div>
+
 <h2 id="question"></h2>
+
 <div id="answers"></div>
+
+<p id="message"></p>
+
+<h3>💡 Jokerler</h3>
+<button onclick="fiftyFifty()">🌓 50/50</button>
+<button onclick="extraTime()">⏱️ +10 Saniye</button>
+<button onclick="skipQuestion()">⏭️ Soruyu Değiştir</button>
+
 </div>
 
+
+<!-- SONUÇ -->
 <div id="result" class="hidden">
-<h1>🏆 Bitti!</h1>
-<p id="score"></p>
+<h1>🏆 Quiz Bitti!</h1>
+<h2 id="finalScore"></h2>
+<p id="levelText"></p>
+<p id="resultText"></p>
+
 <button onclick="location.reload()">🔄 Tekrar Oyna</button>
+<button onclick="backMenu()">🏠 Ana Menü</button>
+</div>
+
+
+<!-- BAŞARIMLAR -->
+<div id="achievements" class="hidden">
+<h1>🥇 Başarımlar</h1>
+<div id="achievementList"></div>
+<button onclick="backMenu()">🏠 Geri</button>
+</div>
+
+
+<!-- LİDERLİK -->
+<div id="leaders" class="hidden">
+<h1>🏆 Liderlik Tablosu</h1>
+<div id="leaderboard"></div>
+<button onclick="backMenu()">🏠 Geri</button>
 </div>
 
 </div>
+
 
 <script>
+
+/* =========================
+   SORULAR
+========================= */
+
 const questions={
 
 Kolay:[
-["2022 Dünya Kupası'nı kim kazandı?",["Arjantin","Fransa","Brezilya","Almanya"],0],
-["Cristiano Ronaldo hangi ülkedendir?",["İspanya","Portekiz","Brezilya","İtalya"],1],
-["Messi hangi ülkedendir?",["Arjantin","İspanya","Uruguay","Şili"],0],
-["Bir futbol takımında sahada kaç oyuncu olur?",["9","10","11","12"],2],
-["Dünya Kupası kaç yılda bir düzenlenir?",["2","3","4","5"],2],
-["Futbolda kaleyi kim korur?",["Forvet","Kaleci","Defans","Orta saha"],1],
-["Fenerbahçe'nin renkleri nedir?",["Sarı-Lacivert","Kırmızı-Beyaz","Mavi-Siyah","Yeşil-Beyaz"],0],
-["Galatasaray'ın renkleri nedir?",["Sarı-Kırmızı","Mavi-Beyaz","Siyah-Beyaz","Yeşil-Beyaz"],0],
-["Futbolda kırmızı kart ne anlama gelir?",["Penaltı","Oyundan atılma","Gol","Taç"],1],
-["Futbol maçında normal süre kaç dakikadır?",["60","75","90","120"],2],
-["Penaltı noktası kaleye kaç metre uzaklıktadır?",["9","10","11","12"],2],
-["Ofsayt kararı hangi sporla ilgilidir?",["Tenis","Futbol","Basketbol","Voleybol"],1],
-["Beşiktaş'ın renkleri nedir?",["Sarı-Lacivert","Siyah-Beyaz","Kırmızı-Beyaz","Mavi-Beyaz"],1],
-["Trabzonspor'un renkleri nedir?",["Bordo-Mavi","Sarı-Kırmızı","Yeşil-Beyaz","Siyah-Beyaz"],0],
-["Futbolda topu elle kim oynayabilir?",["Forvet","Kaleci","Defans","Hakem"],1],
-["Futbol hangi spor dalıdır?",["Takım sporu","Bireysel spor","Motor sporu","Su sporu"],0],
-["Şampiyonlar Ligi hangi sporla ilgilidir?",["Basketbol","Futbol","Tenis","Voleybol"],1],
-["Türkiye'nin milli takımının forma rengi genellikle nedir?",["Kırmızı","Yeşil","Sarı","Mor"],0],
-["Maçın başlama vuruşuna ne denir?",["Korner","Santra","Taç","Penaltı"],1],
-["Kaleye atılan ve çizgiyi geçen top ne olur?",["Gol","Taç","Korner","Ofsayt"],0]
+["2022 Dünya Kupası'nı kim kazandı?",["Arjantin","Fransa","Brezilya","Almanya"],0,"Kupalar"],
+["Cristiano Ronaldo hangi ülkedendir?",["İspanya","Portekiz","Brezilya","İtalya"],1,"Oyuncular"],
+["Messi hangi ülkedendir?",["Arjantin","İspanya","Uruguay","Şili"],0,"Oyuncular"],
+["Bir futbol takımında sahada kaç oyuncu olur?",["9","10","11","12"],2,"Takımlar"],
+["Dünya Kupası kaç yılda bir düzenlenir?",["2","3","4","5"],2,"Kupalar"],
+["Futbolda kaleyi kim korur?",["Forvet","Kaleci","Defans","Orta saha"],1,"Takımlar"],
+["Fenerbahçe'nin renkleri nedir?",["Sarı-Lacivert","Kırmızı-Beyaz","Mavi-Siyah","Yeşil-Beyaz"],0,"Takımlar"],
+["Galatasaray'ın renkleri nedir?",["Sarı-Kırmızı","Mavi-Beyaz","Siyah-Beyaz","Yeşil-Beyaz"],0,"Takımlar"],
+["Futbolda kırmızı kart ne anlama gelir?",["Penaltı","Oyundan atılma","Gol","Taç"],1,"Takımlar"],
+["Futbol maçının normal süresi kaç dakikadır?",["60","75","90","120"],2,"Takımlar"],
+["Penaltı noktası kaleye kaç metre uzaklıktadır?",["9","10","11","12"],2,"Takımlar"],
+["Ofsayt hangi sporla ilgilidir?",["Tenis","Futbol","Basketbol","Voleybol"],1,"Takımlar"],
+["Beşiktaş'ın renkleri nedir?",["Sarı-Lacivert","Siyah-Beyaz","Kırmızı-Beyaz","Mavi-Beyaz"],1,"Takımlar"],
+["Trabzonspor'un renkleri nedir?",["Bordo-Mavi","Sarı-Kırmızı","Yeşil-Beyaz","Siyah-Beyaz"],0,"Takımlar"],
+["Topu elle kim oynayabilir?",["Forvet","Kaleci","Defans","Orta saha"],1,"Takımlar"],
+["Şampiyonlar Ligi hangi sporla ilgilidir?",["Basketbol","Futbol","Tenis","Voleybol"],1,"Kupalar"],
+["Türkiye milli takımının ana forma rengi nedir?",["Kırmızı","Yeşil","Sarı","Mor"],0,"Takımlar"],
+["Maçın başlama vuruşuna ne denir?",["Korner","Santra","Taç","Penaltı"],1,"Takımlar"],
+["Kaleye atılan ve çizgiyi geçen top ne olur?",["Gol","Taç","Korner","Ofsayt"],0,"Takımlar"],
+["Futbolda golü kim atmaya çalışır?",["Hakem","Oyuncular","Seyirciler","Antrenör"],1,"Takımlar"]
 ],
 
 Normal:[
-["2018 Dünya Kupası'nı kim kazandı?",["Fransa","Hırvatistan","Almanya","İspanya"],0],
-["Real Madrid'in stadı hangisidir?",["Camp Nou","Santiago Bernabéu","Old Trafford","San Siro"],1],
-["Şampiyonlar Ligi'ni en çok kazanan kulüp hangisidir?",["Barcelona","Real Madrid","Milan","Liverpool"],1],
-["Neymar hangi ülkedendir?",["Arjantin","Brezilya","Portekiz","Kolombiya"],1],
-["Türkiye 2002 Dünya Kupası'nı kaçıncı bitirdi?",["İkinci","Üçüncü","Dördüncü","Beşinci"],1],
-["Manchester United'ın stadı hangisidir?",["Anfield","Old Trafford","Etihad","Emirates"],1],
-["2022 Dünya Kupası finalinde Arjantin kimi yendi?",["Brezilya","Fransa","Hollanda","Hırvatistan"],1],
-["Liverpool'un stadı hangisidir?",["Anfield","Stamford Bridge","Etihad","Villa Park"],0],
-["İtalya milli takımının lakabı nedir?",["La Roja","Azzurri","Seleção","Les Bleus"],1],
-["2014 Dünya Kupası'nı kim kazandı?",["Almanya","Arjantin","Brezilya","İspanya"],0],
-["Euro 2020'yi hangi ülke kazandı?",["İngiltere","İtalya","Fransa","İspanya"],1],
-["2016 Avrupa Şampiyonası'nı kim kazandı?",["Portekiz","Fransa","Almanya","İspanya"],0],
-["Barcelona'nın stadı hangisidir?",["Camp Nou","Bernabéu","Anfield","San Siro"],0],
-["Manchester City'nin stadı hangisidir?",["Old Trafford","Etihad","Emirates","Anfield"],1],
-["2010 Dünya Kupası'nı kim kazandı?",["Almanya","İspanya","Hollanda","İtalya"],1],
-["Hangi ülke 1998 Dünya Kupası'nı kazandı?",["Fransa","Brezilya","İtalya","Almanya"],0],
-["Real Madrid hangi ülkededir?",["İtalya","İspanya","İngiltere","Fransa"],1],
-["Juventus hangi ülkededir?",["İspanya","İtalya","Almanya","Fransa"],1],
-["Bayern Münih hangi ülkededir?",["İtalya","Almanya","İspanya","Fransa"],1],
-["Premier League hangi ülkededir?",["İngiltere","İspanya","İtalya","Fransa"],0]
+["2018 Dünya Kupası'nı kim kazandı?",["Fransa","Hırvatistan","Almanya","İspanya"],0,"Kupalar"],
+["Real Madrid'in stadı hangisidir?",["Camp Nou","Santiago Bernabéu","Old Trafford","San Siro"],1,"Takımlar"],
+["Şampiyonlar Ligi'ni en çok kazanan kulüp hangisidir?",["Barcelona","Real Madrid","Milan","Liverpool"],1,"Kupalar"],
+["Neymar hangi ülkedendir?",["Arjantin","Brezilya","Portekiz","Kolombiya"],1,"Oyuncular"],
+["Türkiye 2002 Dünya Kupası'nı kaçıncı bitirdi?",["İkinci","Üçüncü","Dördüncü","Beşinci"],1,"Kupalar"],
+["Manchester United'ın stadı hangisidir?",["Anfield","Old Trafford","Etihad","Emirates"],1,"Takımlar"],
+["2022 Dünya Kupası finalinde Arjantin kimi yendi?",["Brezilya","Fransa","Hollanda","Hırvatistan"],1,"Kupalar"],
+["Liverpool'un stadı hangisidir?",["Anfield","Stamford Bridge","Etihad","Villa Park"],0,"Takımlar"],
+["İtalya milli takımının lakabı nedir?",["La Roja","Azzurri","Seleção","Les Bleus"],1,"Takımlar"],
+["2014 Dünya Kupası'nı kim kazandı?",["Almanya","Arjantin","Brezilya","İspanya"],0,"Kupalar"],
+["Euro 2020'yi hangi ülke kazandı?",["İngiltere","İtalya","Fransa","İspanya"],1,"Kupalar"],
+["2016 Avrupa Şampiyonası'nı kim kazandı?",["Portekiz","Fransa","Almanya","İspanya"],0,"Kupalar"],
+["Barcelona'nın stadı hangisidir?",["Camp Nou","Bernabéu","Anfield","San Siro"],0,"Takımlar"],
+["Manchester City'nin stadı hangisidir?",["Old Trafford","Etihad","Emirates","Anfield"],1,"Takımlar"],
+["2010 Dünya Kupası'nı kim kazandı?",["Almanya","İspanya","Hollanda","İtalya"],1,"Kupalar"],
+["1998 Dünya Kupası'nı kim kazandı?",["Fransa","Brezilya","İtalya","Almanya"],0,"Kupalar"],
+["Real Madrid hangi ülkededir?",["İtalya","İspanya","İngiltere","Fransa"],1,"Takımlar"],
+["Juventus hangi ülkededir?",["İspanya","İtalya","Almanya","Fransa"],1,"Takımlar"],
+["Bayern Münih hangi ülkededir?",["İtalya","Almanya","İspanya","Fransa"],1,"Takımlar"],
+["Premier League hangi ülkededir?",["İngiltere","İspanya","İtalya","Fransa"],0,"Kupalar"]
 ],
 
 Zor:[
-["2006 Dünya Kupası'nı kim kazandı?",["İtalya","Fransa","Almanya","Brezilya"],0],
-["2013 Ballon d'Or'u kim kazandı?",["Messi","Ribéry","Ronaldo","Xavi"],2],
-["Şampiyonlar Ligi tarihinde en çok gol atan oyuncu kimdir?",["Messi","Ronaldo","Lewandowski","Benzema"],1],
-["2005 Şampiyonlar Ligi finalinde Liverpool kimi yendi?",["Milan","Chelsea","Barcelona","Juventus"],0],
-["2010 Dünya Kupası'nı kim kazandı?",["Almanya","İspanya","Hollanda","İtalya"],1],
-["1986 Dünya Kupası'nı kim kazandı?",["Arjantin","İtalya","İspanya","Meksika"],0],
-["2019 Ballon d'Or'u kim kazandı?",["Ronaldo","Messi","Van Dijk","Modric"],1],
-["2008 Ballon d'Or'u kim kazandı?",["Cristiano Ronaldo","Messi","Kaká","Xavi"],0],
-["2014 Dünya Kupası finalinde Almanya kimi yendi?",["Arjantin","Brezilya","Hollanda","Fransa"],0],
-["1999 Şampiyonlar Ligi finalini kim kazandı?",["Bayern Münih","Manchester United","Real Madrid","Barcelona"],1],
-["2018 Ballon d'Or'u kim kazandı?",["Messi","Ronaldo","Modric","Neymar"],2],
-["2007 Ballon d'Or'u kim kazandı?",["Kaká","Messi","Ronaldo","Ronaldinho"],0],
-["2010 Ballon d'Or'u kim kazandı?",["Xavi","Iniesta","Messi","Sneijder"],2],
-["2014 Ballon d'Or'u kim kazandı?",["Ronaldo","Messi","Neuer","Robben"],0],
-["2016 Ballon d'Or'u kim kazandı?",["Messi","Ronaldo","Griezmann","Suárez"],1],
-["2017 Ballon d'Or'u kim kazandı?",["Neymar","Ronaldo","Messi","Modric"],1],
-["2018 Dünya Kupası finalinde Fransa kimi yendi?",["Hırvatistan","Belçika","İngiltere","Brezilya"],0],
-["2002 Dünya Kupası finalinde Brezilya kimi yendi?",["Almanya","Arjantin","İtalya","Fransa"],0],
-["1998 Dünya Kupası finalinde Fransa kimi yendi?",["Brezilya","İtalya","Almanya","Hollanda"],0],
-["1994 Dünya Kupası'nı kim kazandı?",["Brezilya","İtalya","Almanya","Arjantin"],0]
+["2006 Dünya Kupası'nı kim kazandı?",["İtalya","Fransa","Almanya","Brezilya"],0,"Kupalar"],
+["2013 Ballon d'Or'u kim kazandı?",["Messi","Ribéry","Ronaldo","Xavi"],2,"Oyuncular"],
+["Şampiyonlar Ligi tarihinde en çok gol atan oyuncu kimdir?",["Messi","Ronaldo","Lewandowski","Benzema"],1,"Oyuncular"],
+["2005 Şampiyonlar Ligi finalinde Liverpool kimi yendi?",["Milan","Chelsea","Barcelona","Juventus"],0,"Kupalar"],
+["2010 Dünya Kupası'nı kim kazandı?",["Almanya","İspanya","Hollanda","İtalya"],1,"Kupalar"],
+["1986 Dünya Kupası'nı kim kazandı?",["Arjantin","İtalya","İspanya","Meksika"],0,"Kupalar"],
+["2019 Ballon d'Or'u kim kazandı?",["Ronaldo","Messi","Van Dijk","Modric"],1,"Oyuncular"],
+["2008 Ballon d'Or'u kim kazandı?",["Cristiano Ronaldo","Messi","Kaká","Xavi"],0,"Oyuncular"],
+["2014 Dünya Kupası finalinde Almanya kimi yendi?",["Arjantin","Brezilya","Hollanda","Fransa"],0,"Kupalar"],
+["1999 Şampiyonlar Ligi finalini kim kazandı?",["Bayern Münih","Manchester United","Real Madrid","Barcelona"],1,"Kupalar"],
+["2018 Ballon d'Or'u kim kazandı?",["Messi","Ronaldo","Modric","Neymar"],2,"Oyuncular"],
+["2007 Ballon d'Or'u kim kazandı?",["Kaká","Messi","Ronaldo","Ronaldinho"],0,"Oyuncular"],
+["2010 Ballon d'Or'u kim kazandı?",["Xavi","Iniesta","Messi","Sneijder"],2,"Oyuncular"],
+["2014 Ballon d'Or'u kim kazandı?",["Ronaldo","Messi","Neuer","Robben"],0,"Oyuncular"],
+["2016 Ballon d'Or'u kim kazandı?",["Messi","Ronaldo","Griezmann","Suárez"],1,"Oyuncular"],
+["2017 Ballon d'Or'u kim kazandı?",["Neymar","Ronaldo","Messi","Modric"],1,"Oyuncular"],
+["2018 Dünya Kupası finalinde Fransa kimi yendi?",["Hırvatistan","Belçika","İngiltere","Brezilya"],0,"Kupalar"],
+["2002 Dünya Kupası finalinde Brezilya kimi yendi?",["Almanya","Arjantin","İtalya","Fransa"],0,"Kupalar"],
+["1998 Dünya Kupası finalinde Fransa kimi yendi?",["Brezilya","İtalya","Almanya","Hollanda"],0,"Kupalar"],
+["1994 Dünya Kupası'nı kim kazandı?",["Brezilya","İtalya","Almanya","Arjantin"],0,"Kupalar"]
 ]
 };
 
+
+/* =========================
+   DEĞİŞKENLER
+========================= */
+
 let count=5;
-let level="";
+let difficulty="";
+let category="Karışık";
+let timeLimit=15;
+
+let quiz=[];
 let current=0;
 let score=0;
-let quiz=[];
-let timer;
-let time=15;
+let lives=3;
+let streak=0;
 
-/* Her zorluk için son oynanan soruları sakla */
+let timer;
+let timeLeft;
+
+let usedJokers={
+ fifty:false,
+ extra:false,
+ skip:false
+};
+
 let lastPlayed={
  Kolay:[],
  Normal:[],
  Zor:[]
 };
 
+
+/* =========================
+   LOCAL STORAGE
+========================= */
+
+let coins=Number(localStorage.getItem("coins")||0);
+let xp=Number(localStorage.getItem("xp")||0);
+let best=Number(localStorage.getItem("best")||0);
+let achievements=JSON.parse(localStorage.getItem("achievements")||"[]");
+let leaderboard=JSON.parse(localStorage.getItem("leaderboard")||"[]");
+
+document.getElementById("coins").textContent=coins;
+
+
+/* =========================
+   MENÜ
+========================= */
+
 function chooseCount(n){
  count=n;
- document.getElementById("difficulty").classList.remove("hidden");
+ document.getElementById("settings").classList.remove("hidden");
 }
 
-function start(selected){
- level=selected;
+function chooseDifficulty(d){
+ difficulty=d;
+}
 
- let all=[...questions[level]];
+function setCategory(c){
+ category=c;
+}
 
- /* Önceki oyundaki soruları mümkün olduğunca dışarıda bırak */
- let fresh=all.filter((q,i)=>!lastPlayed[level].includes(i));
+function setTime(t){
+ timeLimit=t;
+}
 
- /* Yeterli soru yoksa kalan soruları ekle */
- fresh.sort(()=>Math.random()-0.5);
+function startQuiz(){
+
+ if(!difficulty){
+   alert("Önce zorluk seç!");
+   return;
+ }
+
+ let all=questions[difficulty];
+
+ if(category!=="Karışık"){
+   let filtered=all.filter(q=>q[3]===category);
+
+   if(filtered.length>=count) all=filtered;
+ }
+
+ let fresh=all.filter((q,i)=>!lastPlayed[difficulty].includes(i));
+
+ fresh.sort(()=>Math.random()-.5);
 
  if(fresh.length<count){
-   let old=all.filter((q,i)=>lastPlayed[level].includes(i));
-   old.sort(()=>Math.random()-0.5);
+   let old=all.filter((q,i)=>lastPlayed[difficulty].includes(i));
+   old.sort(()=>Math.random()-.5);
    fresh=fresh.concat(old);
  }
 
  quiz=fresh.slice(0,count);
 
- /* Bu oyunda kullanılan soruları kaydet */
- lastPlayed[level]=quiz.map(q=>all.indexOf(q));
+ lastPlayed[difficulty]=quiz.map(q=>questions[difficulty].indexOf(q));
 
  current=0;
  score=0;
+ lives=3;
+ streak=0;
+
+ usedJokers={
+   fifty:false,
+   extra:false,
+   skip:false
+ };
 
  document.getElementById("menu").classList.add("hidden");
  document.getElementById("quiz").classList.remove("hidden");
 
+ updateStats();
  showQuestion();
 }
 
+
+/* =========================
+   SORU
+========================= */
+
 function showQuestion(){
+
  clearInterval(timer);
 
  let q=quiz[current];
@@ -203,57 +367,176 @@ function showQuestion(){
  box.innerHTML="";
 
  q[1].forEach((answer,index)=>{
+
    let b=document.createElement("button");
+
    b.className="option";
    b.textContent=answer;
+
    b.onclick=()=>answerQuestion(index,b);
+
    box.appendChild(b);
  });
 
- time=15;
- document.getElementById("timer").textContent="⏱️ "+time;
+ timeLeft=timeLimit;
+
+ updateTimer();
 
  timer=setInterval(()=>{
-   time--;
-   document.getElementById("timer").textContent="⏱️ "+time;
 
-   if(time<=0){
+   timeLeft--;
+
+   updateTimer();
+
+   if(timeLeft<=0){
      clearInterval(timer);
-     nextQuestion();
+
+     lives--;
+     streak=0;
+
+     document.getElementById("message").textContent=
+       "⏰ Süre bitti!";
+
+     updateStats();
+
+     setTimeout(nextQuestion,700);
    }
+
  },1000);
 }
 
+function updateTimer(){
+ document.getElementById("timer").textContent=
+ "⏱️ "+timeLeft;
+}
+
+
+/* =========================
+   CEVAP
+========================= */
+
 function answerQuestion(index,button){
+
  clearInterval(timer);
 
  let q=quiz[current];
+
  let buttons=document.querySelectorAll(".option");
 
  buttons.forEach(b=>b.disabled=true);
 
  if(index===q[2]){
+
    button.classList.add("correct");
+
    score++;
+   streak++;
+
+   let earned=100+(streak*10);
+
+   coins+=earned;
+   xp+=20;
+
+   document.getElementById("message").textContent=
+     "✅ Doğru! +"+earned+" coin 🔥";
+
  }else{
+
    button.classList.add("wrong");
    buttons[q[2]].classList.add("correct");
+
+   lives--;
+   streak=0;
+
+   document.getElementById("message").textContent=
+     "❌ Yanlış!";
  }
 
- setTimeout(nextQuestion,800);
+ saveData();
+ updateStats();
+
+ if(lives<=0){
+
+   setTimeout(finish,900);
+
+ }else{
+
+   setTimeout(nextQuestion,800);
+ }
 }
 
+
+/* =========================
+   JOKERLER
+========================= */
+
+function fiftyFifty(){
+
+ if(usedJokers.fifty)return;
+
+ usedJokers.fifty=true;
+
+ let q=quiz[current];
+ let buttons=[...document.querySelectorAll(".option")];
+
+ let wrong=buttons
+   .map((b,i)=>i)
+   .filter(i=>i!==q[2]);
+
+ wrong.sort(()=>Math.random()-.5);
+
+ wrong.slice(0,2).forEach(i=>{
+   buttons[i].style.visibility="hidden";
+ });
+}
+
+function extraTime(){
+
+ if(usedJokers.extra)return;
+
+ usedJokers.extra=true;
+
+ timeLeft+=10;
+
+ updateTimer();
+}
+
+function skipQuestion(){
+
+ if(usedJokers.skip)return;
+
+ usedJokers.skip=true;
+
+ clearInterval(timer);
+
+ nextQuestion();
+}
+
+
+/* =========================
+   İLERLEME
+========================= */
+
 function nextQuestion(){
+
  current++;
 
- if(current>=count){
+ document.getElementById("message").textContent="";
+
+ if(current>=quiz.length){
    finish();
  }else{
    showQuestion();
  }
 }
 
+
+/* =========================
+   SONUÇ
+========================= */
+
 function finish(){
+
  clearInterval(timer);
 
  document.getElementById("quiz").classList.add("hidden");
@@ -261,11 +544,200 @@ function finish(){
 
  let points=score*100;
 
- document.getElementById("score").innerHTML=
- "Doğru: "+score+" / "+count+
- "<br>Yanlış: "+(count-score)+
- "<br>🏆 Puan: "+points;
+ if(points>best){
+   best=points;
+ }
+
+ xp+=score*10;
+
+ leaderboard.push({
+   score:points,
+   correct:score,
+   date:new Date().toLocaleDateString("tr-TR")
+ });
+
+ leaderboard.sort((a,b)=>b.score-a.score);
+ leaderboard=leaderboard.slice(0,10);
+
+ checkAchievements();
+
+ saveData();
+
+ document.getElementById("finalScore").textContent=
+   score+" / "+count+" doğru";
+
+ document.getElementById("levelText").textContent=
+   "👑 Seviye: "+getLevel();
+
+ document.getElementById("resultText").innerHTML=
+   "🏆 "+points+" puan<br>"+
+   "💰 Toplam coin: "+coins+"<br>"+
+   "🔥 En iyi seri: "+streak;
 }
+
+
+/* =========================
+   SEVİYE
+========================= */
+
+function getLevel(){
+
+ if(xp>=1000)return "👑 Efsane";
+ if(xp>=700)return "💎 Usta";
+ if(xp>=400)return "🔥 Profesyonel";
+ if(xp>=200)return "⚽ İyi Oyuncu";
+
+ return "🌱 Çaylak";
+}
+
+
+/* =========================
+   BAŞARIMLAR
+========================= */
+
+function checkAchievements(){
+
+ let list=[
+  ["İlk Quiz","İlk quizini tamamla",score>=0],
+  ["Golcü","10 doğru cevap yap",score>=10],
+  ["Mükemmel","Hiç yanlış yapmadan bitir",score===count],
+  ["Usta","20 soruluk quiz bitir",count===20],
+  ["Zor Adam","Zor seviyeyi bitir",difficulty==="Zor"],
+  ["Seri Makinesi","5 soruyu arka arkaya doğru cevapla",streak>=5],
+  ["Quizkolik","En az 1000 coin kazan",coins>=1000]
+ ];
+
+ list.forEach(a=>{
+
+   if(a[2]&&!achievements.includes(a[0])){
+     achievements.push(a[0]);
+   }
+
+ });
+}
+
+
+/* =========================
+   BAŞARIM EKRANI
+========================= */
+
+function showAchievements(){
+
+ document.getElementById("menu").classList.add("hidden");
+ document.getElementById("achievements").classList.remove("hidden");
+
+ let list=[
+  ["İlk Quiz","İlk quizini tamamla"],
+  ["Golcü","10 doğru cevap"],
+  ["Mükemmel","Hatasız quiz"],
+  ["Usta","20 soruluk quiz"],
+  ["Zor Adam","Zor seviyeyi bitir"],
+  ["Seri Makinesi","5 seri doğru"],
+  ["Quizkolik","1000 coin"]
+ ];
+
+ document.getElementById("achievementList").innerHTML=
+ list.map(a=>
+   achievements.includes(a[0])
+   ? "🏆 <b>"+a[0]+"</b> — "+a[1]+"<br><br>"
+   : "🔒 <b>"+a[0]+"</b> — "+a[1]+"<br><br>"
+ ).join("");
+}
+
+
+/* =========================
+   LİDERLİK TABLOSU
+========================= */
+
+function showLeaderboard(){
+
+ document.getElementById("menu").classList.add("hidden");
+ document.getElementById("leaders").classList.remove("hidden");
+
+ if(leaderboard.length===0){
+
+   document.getElementById("leaderboard").innerHTML=
+     "Henüz skor yok.";
+
+   return;
+ }
+
+ document.getElementById("leaderboard").innerHTML=
+ leaderboard.map((x,i)=>
+   (i+1)+". 🏆 "+x.score+
+   " puan — "+x.correct+" doğru — "+x.date
+ ).join("<br><br>");
+}
+
+
+/* =========================
+   TEMA
+========================= */
+
+function toggleTheme(){
+
+ document.body.classList.toggle("light");
+
+ localStorage.setItem(
+   "theme",
+   document.body.classList.contains("light")
+   ?"light":"dark"
+ );
+}
+
+if(localStorage.getItem("theme")==="light"){
+ document.body.classList.add("light");
+}
+
+
+/* =========================
+   ANA MENÜ
+========================= */
+
+function backMenu(){
+
+ document.getElementById("result").classList.add("hidden");
+ document.getElementById("achievements").classList.add("hidden");
+ document.getElementById("leaders").classList.add("hidden");
+
+ document.getElementById("menu").classList.remove("hidden");
+}
+
+
+/* =========================
+   KAYDET
+========================= */
+
+function saveData(){
+
+ localStorage.setItem("coins",coins);
+ localStorage.setItem("xp",xp);
+ localStorage.setItem("best",best);
+
+ localStorage.setItem(
+   "achievements",
+   JSON.stringify(achievements)
+ );
+
+ localStorage.setItem(
+   "leaderboard",
+   JSON.stringify(leaderboard)
+ );
+
+ document.getElementById("coins").textContent=coins;
+}
+
+
+/* BAŞLANGIÇ */
+updateStats();
+
+function updateStats(){
+
+ document.getElementById("lives").textContent=lives;
+ document.getElementById("coins").textContent=coins;
+ document.getElementById("streak").textContent=streak;
+}
+
 </script>
 
 </body>
